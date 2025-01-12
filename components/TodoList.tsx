@@ -16,7 +16,7 @@ interface List {
 
 interface TodoListProps {
     list: List;
-    updateList: (updatedList: List) => void; 
+    updateList: (updatedList: List) => void;
 }
 
 export default class TodoList extends Component<TodoListProps> {
@@ -60,11 +60,11 @@ export default class TodoList extends Component<TodoListProps> {
                         {list.name}
                     </Text>
                     <View style={{ alignItems: "center" }}>
-                        <Text style={styles.count}>{completedCount}</Text>
+                        <Text style={styles.count}>{remainingCount}</Text>
                         <Text style={styles.subTitle}>Remaining</Text>
                     </View>
                     <View style={{ alignItems: "center" }}>
-                        <Text style={styles.count}>{remainingCount}</Text>
+                        <Text style={styles.count}>{completedCount}</Text>
                         <Text style={styles.subTitle}>Completed</Text>
                     </View>
                 </TouchableOpacity>

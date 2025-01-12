@@ -11,7 +11,7 @@ import { AntDesign } from "@expo/vector-icons";
 import colors from "./colors";
 import tempData from "./tempData";
 import TodoList from "../components/TodoList";
-import AddListmodal from "../components/AddListModal";
+import AddListModal from "../components/AddListModal";
 
 interface Todo {
     title: string;
@@ -25,23 +25,15 @@ interface List {
     todos: Todo[];
 }
 
-interface TodoListProps {
-    list: List;
-    updateList: (list: List) => void;
-}
-
 export default class App extends React.Component {
     state = {
         addTodoVisible: false,
         lists: tempData,
     };
+
     toggleAddTodoModal() {
         this.setState({ addTodoVisible: !this.state.addTodoVisible });
     }
-
-    renderList = (list: List) => {
-        return <TodoList list={list} updateList={this.updateList} />;
-    };
 
     addList = (list: List) => {
         this.setState({
@@ -51,13 +43,17 @@ export default class App extends React.Component {
             ],
         });
     };
-    // In your App component:
+
     updateList = (updatedList: List) => {
         this.setState({
             lists: this.state.lists.map((item) =>
                 item.id === updatedList.id ? updatedList : item
             ),
         });
+    };
+
+    renderList = (list: List) => {
+        return <TodoList list={list} updateList={this.updateList} />;
     };
 
     render() {
@@ -68,7 +64,7 @@ export default class App extends React.Component {
                     visible={this.state.addTodoVisible}
                     onRequestClose={() => this.toggleAddTodoModal()}
                 >
-                    <AddListmodal
+                    <AddListModal
                         closeModal={() => this.toggleAddTodoModal()}
                         addList={this.addList}
                     />
@@ -78,7 +74,6 @@ export default class App extends React.Component {
                     <Text style={styles.title}>
                         Todo{" "}
                         <Text style={{ fontWeight: "300", color: colors.blue }}>
-                            {" "}
                             Lists
                         </Text>
                     </Text>
@@ -91,22 +86,23 @@ export default class App extends React.Component {
                     >
                         <AntDesign name="plus" size={16} color={colors.blue} />
                     </TouchableOpacity>
-
-                    <Text style={styles.add}> Add List</Text>
+                    <Text style={styles.add}>Add List</Text>
                 </View>
                 <View style={{ height: 275, paddingLeft: 32 }}>
                     <FlatList
                         data={this.state.lists}
-                        keyExtractor={(item) => item.name}
+                        keyExtractor={(item) => item.id.toString()}
                         horizontal={true}
                         showsHorizontalScrollIndicator={false}
                         renderItem={({ item }) => this.renderList(item)}
+                        keyboardShouldPersistTaps="always"
                     />
                 </View>
             </View>
         );
     }
 }
+
 const styles = StyleSheet.create({
     container: {
         flex: 1,

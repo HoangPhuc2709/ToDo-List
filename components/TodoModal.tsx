@@ -1,8 +1,8 @@
 import React from "react";
 import {
     FlatList,
+    Keyboard,
     KeyboardAvoidingView,
-    Modal,
     SafeAreaView,
     StyleSheet,
     Text,
@@ -34,50 +34,61 @@ export default class TodoModal extends React.Component<TodoModalProps> {
     state = {
         newTodo: "",
     };
+
     toggleTodoCompleted = (index: number) => {
-        let list = this.props.list;
+        const { list, updateList } = this.props;
         list.todos[index].completed = !list.todos[index].completed;
-
-        this.props.updateList(list);
+        updateList(list);
     };
 
-    renderTodo = (todo: Todo, index: number) => {
-        return (
-            <View style={styles.todoContainer}>
-                <TouchableOpacity
-                    onPress={() => this.toggleTodoCompleted(index)}
-                >
-                    <Ionicons
-                        name={todo.completed ? "checkbox" : "checkbox-outline"}
-                        size={24}
-                        color={colors.gray}
-                        style={{ width: 32 }}
-                    />
-                </TouchableOpacity>
-                <Text
-                    style={[
-                        styles.todoText,
-                        {
-                            textDecorationLine: todo.completed
-                                ? "line-through"
-                                : "none", // Sửa lỗi chính tả
-                            color: todo.completed ? colors.gray : colors.black,
-                        },
-                    ]}
-                >
-                    {todo.title}
-                </Text>
-            </View>
-        );
+    addTodo = () => {
+        const { newTodo } = this.state;
+        if (!newTodo.trim()) {
+            alert("Todo cannot be empty!");
+            return;
+        }
+
+        const { list, updateList } = this.props;
+        list.todos.push({ title: newTodo, completed: false });
+        updateList(list);
+        this.setState({ newTodo: "" });
+        Keyboard.dismiss();
     };
+
+    renderTodo = (todo: Todo, index: number) => (
+        <View style={styles.todoContainer}>
+            <TouchableOpacity onPress={() => this.toggleTodoCompleted(index)}>
+                <Ionicons
+                    name={todo.completed ? "checkbox" : "checkbox-outline"}
+                    size={24}
+                    color={colors.gray}
+                    style={{ width: 32 }}
+                />
+            </TouchableOpacity>
+            <Text
+                style={[
+                    styles.todoText,
+                    {
+                        textDecorationLine: todo.completed
+                            ? "line-through"
+                            : "none",
+                        color: todo.completed ? colors.gray : colors.black,
+                    },
+                ]}
+            >
+                {todo.title}
+            </Text>
+        </View>
+    );
+
     render() {
-        const list = this.props.list;
+        const { list, closeModal } = this.props;
+        const { newTodo } = this.state;
 
         const taskCount = list.todos.length;
         const completedCount = list.todos.filter(
             (todo) => todo.completed
         ).length;
-        const { closeModal } = this.props;
 
         return (
             <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
@@ -89,7 +100,7 @@ export default class TodoModal extends React.Component<TodoModalProps> {
                             right: 32,
                             zIndex: 10,
                         }}
-                        onPress={this.props.closeModal}
+                        onPress={closeModal}
                     >
                         <AntDesign
                             name="close"
@@ -112,29 +123,49 @@ export default class TodoModal extends React.Component<TodoModalProps> {
                             </Text>
                         </View>
                     </View>
+
                     <View style={[styles.section, { flex: 1 }]}>
                         <FlatList
                             data={list.todos}
                             renderItem={({ item, index }) =>
                                 this.renderTodo(item, index)
                             }
-                            keyExtractor={(item) => item.title}
+                            keyExtractor={(item, index) =>
+                                `${item.title}-${index}`
+                            }
                             contentContainerStyle={{
                                 paddingHorizontal: 32,
                                 paddingVertical: 64,
                             }}
+                            ListEmptyComponent={() => (
+                                <Text
+                                    style={{
+                                        textAlign: "center",
+                                        color: colors.gray,
+                                    }}
+                                >
+                                    No tasks available. Add a new task!
+                                </Text>
+                            )}
                             showsVerticalScrollIndicator={false}
                         />
                     </View>
+
                     <View style={[styles.section, styles.footer]}>
                         <TextInput
                             style={[styles.input, { borderColor: list.color }]}
-                        ></TextInput>
+                            onChangeText={(text) =>
+                                this.setState({ newTodo: text })
+                            }
+                            value={newTodo}
+                            placeholder="Add a task..."
+                        />
                         <TouchableOpacity
                             style={[
                                 styles.addTodo,
                                 { backgroundColor: list.color },
                             ]}
+                            onPress={this.addTodo}
                         >
                             <AntDesign
                                 name="plus"
@@ -155,7 +186,6 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         backgroundColor: "white",
-        padding: 20,
     },
     section: {
         flex: 1,
